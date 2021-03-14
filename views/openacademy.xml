@@ -2,6 +2,39 @@
 <odoo>
 	<!-- Este data file genera una accion que se genera al ineractuar con el menu-->
 
+	<record model="ir.ui.view" id="course_form_view">
+		<field name="name">course.form</field>
+		<field name="model">openacademy.course</field>
+		<field name="arch" type="xml">
+			<form string="Course Form">
+				<sheet>
+					<group>
+						<field name="name"/>
+					</group>
+					<notebook>
+						<page string="Description">
+							<field name="description"/>
+						</page>
+						<page string="About">
+							This is an example of noteboks
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<record model="ir.ui.view" id="course_search_view">
+		<field name="name">course.search</field>
+		<field name="model">openacademy.course</field>
+		<field name="arch" type="xml">
+			<search>
+				<field name="name"/>
+				<field name="description"/>
+			</search>
+		</field>
+	</record>
+
 	<!-- window action-->
 	<!-- La siguiente etiqueta es la definicion de una accion para un "window action"
 		 - La accion de abrir una vista o un conjunto de vistas -->
@@ -16,14 +49,17 @@
 
 	<!--Top level menu: no parent-->
 
-	<!--Aplicacion-->
+	<!--Seccion en el menu de principal-->
 	<menuitem id="main_openacademy_menu" name="Open Academy"/>
+	<!--Menu principal dentro del modulo-->
 	<!--A first level in the left side menu is needed before using action=attribute-->
 	<menuitem id="openacademy_menu" name="Open Academy" parent="main_openacademy_menu"/>
+	<!--Tab dentro del menu principal del modulo-->
 	<!--The following menuitem should appear after its parent openacademy_menu and
 		after its action course_ist_action-->
 	<menuitem id="course_menu" name="Courses" parent="openacademy_menu" action="course_list_action"/>
 	<!--Full id location: 
 		action="openacademy.course_list_action"
 		It is not required when it is on the same module-->
+
 </odoo>
