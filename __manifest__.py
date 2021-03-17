@@ -9,6 +9,7 @@
             - training courses
             - training sessions
             - attendees registration
+            - instructors registration
             - and more...
     """,
 
