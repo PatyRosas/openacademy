@@ -9,6 +9,7 @@
             - training courses
             - training sessions
             - attendees registration
+            - and more...
     """,
 
     'author': "My Company",
