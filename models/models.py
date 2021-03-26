@@ -1,40 +1,48 @@
 # -*- coding: utf-8 -*-
-
+import datetime
 from datetime import timedelta
+from datetime import datetime as dt
 from odoo import models, fields, api, exceptions, _
 
 class Course(models.Model):
-    _name = 'openacademy.course'
-    _description = "OpenAcademy Courses"
+	_name = 'openacademy.course'
+	_description = "OpenAcademy Courses"
 
-    name = fields.Char(string="Title", required=True)
-    description = fields.Text()
+	name = fields.Char(string="Title", required=True)
+	description = fields.Text()
 
-    responsible_id = fields.Many2one('res.users', ondelete='set null', string="Responsible", index=True)
-    session_ids = fields.One2many('openacademy.session', 'course_id', string="Sessions")
+	responsible_id = fields.Many2one('res.users', ondelete='set null', string="Responsible", index=True)
+	session_ids = fields.One2many('openacademy.session', 'course_id', string="Sessions")
 
-    def copy(self, default=None):
-    	default = dict(default or {})
+	session_count = fields.Integer(string="Number of sessions", compute='_compute_session_count', store="True")
 
-    	copied_count = self.search_count(
-    		[('name', '=like', _(u"Copy of {}%").format(self.name))])
-    	if not copied_count:
-    		new_name = _(u"Copy of {}").format(self.name)
-    	else:
-    		new_name = _(u"Copy of {} ({})").format(self.name, copied_count)
+	@api.depends('session_ids')
+	def _compute_session_count(self):
+		for r in self:
+			r.session_count = len(r.session_ids)
 
-    	default['name'] = new_name
-    	return super(Course, self).copy(default)
+	def copy(self, default=None):
+		default = dict(default or {})
 
-    _sql_constraints = [
-    	('name_description_check',
-    	 'CHECK(name != description)',
-    	 "The title of the course should not be the description"),
+		copied_count = self.search_count(
+			[('name', '=like', _(u"Copy of {}%").format(self.name))])
+		if not copied_count:
+			new_name = _(u"Copy of {}").format(self.name)
+		else:
+			new_name = _(u"Copy of {} ({})").format(self.name, copied_count)
 
-    	('name_unique',
-    	 'UNIQUE(name)',
-    	 "The course title must be unique"),
-    ]
+		default['name'] = new_name
+		return super(Course, self).copy(default)
+
+	_sql_constraints = [
+		('name_description_check',
+		 'CHECK(name != description)',
+		 "The title of the course should not be the description"),
+
+		('name_unique',
+		 'UNIQUE(name)',
+		 "The course title must be unique"),
+	]
 
 class Session(models.Model):
 	_name = 'openacademy.session'
@@ -46,6 +54,12 @@ class Session(models.Model):
 	seats = fields.Integer(string="Number of seats")
 	active = fields.Boolean(default=True)
 	color = fields.Integer()
+	valid_date = fields.Boolean(default=True, compute='_compute_valid_date')
+
+	def _compute_valid_date(self):
+		return self.start_date >= fields.Date.today()
+
+	#now = (datetime.date.today()).strftime("%d/%m/%Y")
 
 	instructor_id = fields.Many2one('res.partner', string="Instructor",
 		domain=['|',('instructor','=',True),
@@ -59,6 +73,11 @@ class Session(models.Model):
 
 	attendees_count = fields.Integer(
 		string="Attendees count", compute='_get_attendees_count', store="True")
+
+	#@api.constrains('start_date','now')
+	#def _check_start_date(self):
+		#if self.start_date <= self.now:
+			#raise exceptions.ValidationError("Can't modify a past session")
 
 	@api.depends('seats', 'attendee_ids')
 	def _taken_seats(self):
@@ -116,3 +135,5 @@ class Session(models.Model):
 		for r in self:
 			if r.instructor_id and r.instructor_id in r.attendee_ids:
 				raise exceptions.ValidationError(_("A session's instructor can't be an attendee"))
+
+	
